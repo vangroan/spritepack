@@ -8,6 +8,7 @@ edition = "2018"
 name = "spritepack"
 
 [dependencies]
+error-chain = "0.12.1"
 image = "0.21.2"
 log = "0.4"
 petgraph = "0.4.13"
