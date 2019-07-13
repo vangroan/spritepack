@@ -5,12 +5,14 @@ extern crate colored;
 extern crate error_chain;
 extern crate image;
 extern crate log;
+extern crate regex;
 extern crate simple_logger;
 extern crate walkdir;
 
 use clap::{App, Arg};
 use image::DynamicImage;
 use log::{info, trace};
+use regex::Regex;
 use std::collections::HashSet;
 use std::ffi::OsStr;
 use std::fs;
@@ -21,6 +23,16 @@ pub mod errors;
 mod pack;
 
 use pack::*;
+
+fn validate_integer(s: String) -> Result<(), String> {
+    let pattern = Regex::new(r"\d+").unwrap();
+
+    if pattern.is_match(&s) {
+        Ok(())
+    } else {
+        Err(format!("{} is not a valid integer", s))
+    }
+}
 
 fn main() -> errors::Result<()> {
     // Older Windows CMD does not support coloured output
@@ -50,6 +62,32 @@ fn main() -> errors::Result<()> {
                 .takes_value(false)
                 .help("Walks down into folders when true, otherwise only uses files in current directory")
         )
+        .arg(
+            Arg::with_name("name")
+                .default_value("out.png")
+                .short("n")
+                .long("name")
+                .takes_value(true)
+                .help("Filename of output image")
+        )
+        .arg(
+            Arg::with_name("width")
+                .default_value("1024")
+                .short("w")
+                .long("width")
+                .takes_value(true)
+                .validator(validate_integer)
+                .help("Width of output image")
+        )
+        .arg(
+            Arg::with_name("height")
+                .default_value("1024")
+                .short("h")
+                .long("height")
+                .takes_value(true)
+                .validator(validate_integer)
+                .help("Height of output image")
+        )
         .get_matches();
 
     info!("Starting");
@@ -64,6 +102,9 @@ fn main() -> errors::Result<()> {
     let folder_path = fs::canonicalize(input_folder).expect("Failed to canonicalize input path");
 
     let _recurse = matches.is_present("recursive");
+    let output_filename = matches.value_of("name").unwrap();
+    let width = matches.value_of("width").unwrap().parse::<u32>().unwrap();
+    let height = matches.value_of("height").unwrap().parse::<u32>().unwrap();
 
     trace!("Walking {}", folder_path.display());
 
@@ -89,11 +130,11 @@ fn main() -> errors::Result<()> {
         .collect();
 
     info!("Packing {} images", images.len());
-    let mut packer = Packer::new((512, 512));
-
+    let mut packer = Packer::new((width, height));
     let output = packer.pack(images)?;
 
-    output.save("output.png")?;
+    info!("Outputting {} ({} x {})", output_filename, width, height);
+    output.save(output_filename)?;
 
     info!("Done");
 
