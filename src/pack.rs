@@ -172,6 +172,7 @@ impl RectNode {
     /// Right node of branch.
     ///
     /// `None` when node is not a branch.
+    #[allow(dead_code)]
     fn right(&self) -> Option<&RectNode> {
         use RectNode::*;
 
@@ -184,6 +185,7 @@ impl RectNode {
     /// Left node of branch.
     ///
     /// `None` when node is not a branch.
+    #[allow(dead_code)]
     fn left(&self) -> Option<&RectNode> {
         use RectNode::*;
 
@@ -194,6 +196,7 @@ impl RectNode {
     }
 
     /// Rectangle of branch and leaf nodes.
+    #[allow(dead_code)]
     fn rect(&self) -> Option<&Rectangle> {
         use RectNode::*;
 
